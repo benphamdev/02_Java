@@ -1,0 +1,64 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Input file path
+        String outputFile = "src//Main//output.txt";
+
+        try {
+            // Choose input file using JFileChooser
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+            int result = fileChooser.showOpenDialog(null);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File inputFile = fileChooser.getSelectedFile();
+
+                // Input p, q, d using JOptionPane
+                BigInteger p = new BigInteger(JOptionPane.showInputDialog("Enter value for p:"));
+                BigInteger q = new BigInteger(JOptionPane.showInputDialog("Enter value for q:"));
+                BigInteger d = new BigInteger(JOptionPane.showInputDialog("Enter value for d:"));
+
+                // Read message from file
+                FileInputStream inputStream = new FileInputStream(inputFile);
+                ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    byteStream.write(buffer, 0, bytesRead);
+                }
+                byte[] messageBytes = byteStream.toByteArray();
+                inputStream.close();
+
+                // Convert message to BigInteger
+                BigInteger message = new BigInteger(1, messageBytes);
+
+                // Compute signature
+                BigInteger n = p.multiply(q);
+                BigInteger signature = message.modPow(d, n);
+
+                // Write results to file
+                BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+                writer.write("Message: " + new String(messageBytes) + "\n");
+                writer.write("Signature: " + signature + "\n");
+                writer.write("Public Key: (" + n + ", " + d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE))) + ")\n");
+                writer.write("Private Key: (" + d + ")\n");
+                writer.write("Signed: " + signature + "\n");
+                writer.close();
+
+                System.out.println("Signature computation and output completed successfully.");
+            } else {
+                System.out.println("No file selected.");
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading/writing files.");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid integers.");
+        }
+    }
+}

@@ -1,0 +1,161 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Create the frame
+        JFrame frame = new JFrame("Digital Signature");
+        frame.setSize(600, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create panel
+        JPanel panel = new JPanel();
+        frame.add(panel);
+
+        // Add components
+        JTextField key1Field = new JTextField(5);
+        JTextField key2Field = new JTextField(5);
+        JTextField dField = new JTextField(5);
+        JButton signButton = new JButton("Sign");
+        JButton verifyButton = new JButton("Verify Message");
+
+        JLabel publicKeyLabel = new JLabel();
+        JLabel verifyResultLabel = new JLabel();
+
+        JTextField verifyKey1Field = new JTextField(5);
+        JTextField verifyKey2Field = new JTextField(5);
+
+        panel.add(new JLabel("Key1:"));
+        panel.add(key1Field);
+        panel.add(new JLabel("Key2:"));
+        panel.add(key2Field);
+        panel.add(new JLabel("d:"));
+        panel.add(dField);
+        panel.add(signButton);
+        panel.add(verifyButton);
+        panel.add(publicKeyLabel);
+        panel.add(new JLabel("Verify Key1:"));
+        panel.add(verifyKey1Field);
+        panel.add(new JLabel("Verify Key2:"));
+        panel.add(verifyKey2Field);
+        panel.add(verifyResultLabel);
+
+        // Sign button action
+        signButton.addActionListener(e -> {
+            try {
+                BigInteger key1 = new BigInteger(key1Field.getText());
+                BigInteger key2 = new BigInteger(key2Field.getText());
+                BigInteger d = new BigInteger(dField.getText());
+
+                // Choose input file using JFileChooser
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+
+                    // Read message from file
+                    FileInputStream inputStream = new FileInputStream(selectedFile);
+                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        byteStream.write(buffer, 0, bytesRead);
+                    }
+                    byte[] messageBytes = byteStream.toByteArray();
+                    inputStream.close();
+
+                    // Convert message to BigInteger
+                    BigInteger message = new BigInteger(1, messageBytes);
+
+                    // Compute signature
+                    BigInteger n = key1.multiply(key2);
+                    BigInteger signature = message.modPow(d, n);
+
+                    // Write results to file
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
+                    writer.write("Message: " + new String(messageBytes) + "\n");
+                    writer.write("Signature: " + signature + "\n");
+                    writer.write("Public Key: (" + n + ", " + d.modInverse(key1.subtract(BigInteger.ONE).multiply(key2.subtract(BigInteger.ONE))) + ")\n");
+                    writer.write("Private Key: (" + d + ")\n");
+                    writer.write("Signed: " + signature + "\n");
+                    writer.close();
+
+                    publicKeyLabel.setText("Public Key: (" + n + ", " + d.modInverse(key1.subtract(BigInteger.ONE).multiply(key2.subtract(BigInteger.ONE))) + ")");
+
+                    JOptionPane.showMessageDialog(null, "File signed successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "No file selected.");
+                }
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+
+        // Verify button action
+        verifyButton.addActionListener(e -> {
+            try {
+                BigInteger key1 = new BigInteger(key1Field.getText());
+                BigInteger key2 = new BigInteger(key2Field.getText());
+                BigInteger d = new BigInteger(dField.getText());
+
+                BigInteger verifyKey1 = new BigInteger(verifyKey1Field.getText());
+                BigInteger verifyKey2 = new BigInteger(verifyKey2Field.getText());
+
+                // Choose input file using JFileChooser
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    BigInteger signature = new BigInteger(JOptionPane.showInputDialog("Enter the signature:"));
+
+                    if (verifyMessageWithPublicKey(selectedFile, signature, key1, key2, verifyKey1, verifyKey2)) {
+                        verifyResultLabel.setText("Signature is valid.");
+                    } else {
+                        verifyResultLabel.setText("Signature is not valid.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No file selected.");
+                }
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+
+        frame.setVisible(true);
+    }
+
+    private static boolean verifyMessageWithPublicKey(File file, BigInteger signature, BigInteger key1, BigInteger key2, BigInteger verifyKey1, BigInteger verifyKey2) throws IOException {
+        // Read the content of the file
+        FileInputStream inputStream = new FileInputStream(file);
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteStream.write(buffer, 0, bytesRead);
+        }
+        byte[] messageBytes = byteStream.toByteArray();
+        inputStream.close();
+
+        // Convert the message to BigInteger
+        BigInteger message = new BigInteger(1, messageBytes);
+
+        // Compute n
+        BigInteger n = key1.multiply(key2);
+        BigInteger verifyN = verifyKey1.multiply(verifyKey2);
+
+        // Compute m^e mod n using public key
+        BigInteger computedMessage = signature.modPow(BigInteger.valueOf(65537), n); // Assuming e is 65537
+
+        // Compare computed message with the original message and verify public key
+        return computedMessage.equals(message) && n.equals(verifyN);
+    }
+}

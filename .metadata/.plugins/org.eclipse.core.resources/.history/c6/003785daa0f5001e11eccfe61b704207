@@ -1,0 +1,189 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature extends JFrame {
+    private JTextField textFieldP, textFieldQ, textFieldD, textFieldN;
+    private JButton chooseFileButton, signButton, verifyButton;
+    private JTextArea textArea;
+
+    private String inputFile, outputFile;
+
+    public DigitalSignature() {
+        setTitle("Digital Signature");
+        setSize(600, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Initialize text fields
+        textFieldP = new JTextField(10);
+        textFieldQ = new JTextField(10);
+        textFieldD = new JTextField(10);
+        textFieldN = new JTextField(10);
+        textFieldN.setEditable(false); // N is not editable, it will be computed
+
+        // Initialize buttons
+        chooseFileButton = new JButton("Choose File");
+        signButton = new JButton("Sign");
+        verifyButton = new JButton("Verify");
+
+        // Initialize text area
+        textArea = new JTextArea(10, 40);
+        textArea.setEditable(false);
+
+        // Add action listeners to buttons
+        chooseFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chooseFile();
+            }
+        });
+
+        signButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sign();
+            }
+        });
+
+        verifyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                verify();
+            }
+        });
+
+        // Initialize panel and set layout
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Add components to the panel
+        panel.add(new JLabel("p:"), gbc);
+        gbc.gridx++;
+        panel.add(textFieldP, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("q:"), gbc);
+        gbc.gridx++;
+        panel.add(textFieldQ, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("d:"), gbc);
+        gbc.gridx++;
+        panel.add(textFieldD, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(new JLabel("n:"), gbc);
+        gbc.gridx++;
+        panel.add(textFieldN, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(chooseFileButton, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        panel.add(signButton, gbc);
+
+        gbc.gridx++;
+        panel.add(verifyButton, gbc);
+
+        // Add text area to a scroll pane
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
+        // Add panel and scroll pane to the frame
+        getContentPane().add(panel, BorderLayout.NORTH);
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
+    }
+
+    // Method to choose file
+    private void chooseFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            inputFile = fileChooser.getSelectedFile().getAbsolutePath();
+            textArea.append("Input File: " + inputFile + "\n");
+        }
+    }
+
+    // Method to perform signing
+    private void sign() {
+        try {
+            // Get input values
+            BigInteger p = new BigInteger(textFieldP.getText());
+            BigInteger q = new BigInteger(textFieldQ.getText());
+            BigInteger d = new BigInteger(textFieldD.getText());
+
+            // Read message from file
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            StringBuilder messageBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                messageBuilder.append(line);
+            }
+            reader.close();
+
+            // Convert message to BigInteger
+            BigInteger message = new BigInteger(messageBuilder.toString());
+
+            // Compute signature
+            BigInteger signature = computeSignature(message, p, q, d);
+
+            // Write results to file
+            writeResultsToFile(outputFile, message, signature, p, q, d);
+
+            // Show signature
+            textArea.append("Signature: " + signature + "\n");
+            BigInteger publicKeyN = p.multiply(q);
+            BigInteger publicKeyE = d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)));
+            textArea.append("Public Key: (" + publicKeyN + ", " + publicKeyE + ")\n");
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to perform verification
+    private void verify() {
+        // Implement verification logic here
+        textArea.append("Verification is not implemented yet.\n");
+    }
+
+    // Method to compute signature
+    private BigInteger computeSignature(BigInteger message, BigInteger p, BigInteger q, BigInteger d) {
+        BigInteger n = p.multiply(q);
+        return message.modPow(d, n);
+    }
+
+    // Method to write results to file
+    private void writeResultsToFile(String outputFile, BigInteger message, BigInteger signature, BigInteger p, BigInteger q, BigInteger d) throws IOException {
+        BigInteger n = p.multiply(q);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+        writer.write("Message: " + message + "\n");
+        writer.write("Signature: " + signature + "\n");
+        writer.write("Public Key: (" + n + ", " + d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE))) + ")\n");
+        writer.write("Private Key: (" + d + ")\n");
+        writer.write("Signed: " + signature + "\n");
+        writer.close();
+        textArea.append("Signature computation and output completed successfully.\n");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                DigitalSignature gui = new DigitalSignature();
+                gui.setVisible(true);
+            }
+        });
+    }
+}

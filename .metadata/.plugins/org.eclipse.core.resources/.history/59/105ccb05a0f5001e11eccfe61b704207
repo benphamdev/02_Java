@@ -1,0 +1,118 @@
+package Main;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature extends JFrame {
+    private JTable table;
+    private JButton signButton;
+    private JButton verifyButton;
+
+    public DigitalSignature() {
+        setTitle("Digital Signature");
+        setSize(600, 200);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Initialize table model
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Parameter");
+        model.addColumn("Value");
+
+        // Add rows to table model
+        model.addRow(new Object[]{"p", ""});
+        model.addRow(new Object[]{"q", ""});
+        model.addRow(new Object[]{"d", ""});
+        model.addRow(new Object[]{"Input File", ""});
+
+        // Initialize table with model
+        table = new JTable(model);
+
+        // Initialize scroll pane
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Initialize buttons
+        signButton = new JButton("Sign");
+        verifyButton = new JButton("Verify");
+
+        // Add action listeners to buttons
+        signButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Retrieve values from the table
+                String pValue = (String) table.getValueAt(0, 1);
+                String qValue = (String) table.getValueAt(1, 1);
+                String dValue = (String) table.getValueAt(2, 1);
+                String inputFile = chooseFile();
+
+                // Perform signature computation and output
+                // Here you can call your existing methods to compute signature and write results to file
+                // For demonstration purpose, we print the values
+                System.out.println("p: " + pValue);
+                System.out.println("q: " + qValue);
+                System.out.println("d: " + dValue);
+                System.out.println("Input File: " + inputFile);
+            }
+        });
+
+        verifyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Retrieve values from the table
+                String publicKeyN = (String) table.getValueAt(0, 1);
+                String publicKeyE = (String) table.getValueAt(1, 1);
+                String inputFile = chooseFile();
+
+                // Perform verification
+                // Here you can call your existing methods to verify signature
+                // For demonstration purpose, we print the values
+                System.out.println("Public Key N: " + publicKeyN);
+                System.out.println("Public Key E: " + publicKeyE);
+                System.out.println("Input File: " + inputFile);
+            }
+        });
+
+        // Initialize panel and set layout
+        JPanel panel = new JPanel(new BorderLayout());
+
+        // Add scroll pane and buttons to panel
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Create panel for buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1));
+        buttonPanel.add(signButton);
+        buttonPanel.add(verifyButton);
+
+        panel.add(buttonPanel, BorderLayout.EAST);
+
+        // Add panel to frame
+        getContentPane().add(panel);
+    }
+
+    // Method to choose file from system
+    private String chooseFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile().getAbsolutePath();
+        } else {
+            return ""; // Return empty string if no file selected
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                DigitalSignature gui = new DigitalSignature();
+                gui.setVisible(true);
+            }
+        });
+    }
+}

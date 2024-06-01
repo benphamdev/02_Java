@@ -1,0 +1,141 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Create the frame
+        JFrame frame = new JFrame("Digital Signature");
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create panel
+        JPanel panel = new JPanel();
+        frame.add(panel);
+
+        // Add components
+        JTextField pField = new JTextField(10);
+        JTextField qField = new JTextField(10);
+        JTextField dField = new JTextField(10);
+        JButton signButton = new JButton("Sign");
+        JButton verifyButton = new JButton("Verify Signature");
+        JTextArea messageTextArea = new JTextArea(5, 30);
+        JTextArea publicKeyTextArea = new JTextArea(2, 30);
+
+        panel.add(new JLabel("p:"));
+        panel.add(pField);
+        panel.add(new JLabel("q:"));
+        panel.add(qField);
+        panel.add(new JLabel("d:"));
+        panel.add(dField);
+        panel.add(signButton);
+        panel.add(verifyButton);
+        panel.add(new JLabel("Message:"));
+        panel.add(new JScrollPane(messageTextArea));
+        panel.add(new JLabel("Public Key:"));
+        panel.add(new JScrollPane(publicKeyTextArea));
+
+        frame.setVisible(true);
+
+        // Sign button action
+        signButton.addActionListener(e -> {
+            try {
+                BigInteger p = new BigInteger(pField.getText());
+                BigInteger q = new BigInteger(qField.getText());
+                BigInteger d = new BigInteger(dField.getText());
+
+                // Read message from text area
+                String message = messageTextArea.getText();
+
+                // Convert message to byte array
+                byte[] messageBytes = message.getBytes();
+
+                // Convert message to BigInteger
+                BigInteger messageBigInt = new BigInteger(1, messageBytes);
+
+                // Compute signature
+                BigInteger n = p.multiply(q);
+                BigInteger signature = messageBigInt.modPow(d, n);
+
+                // Write results to file
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"))) {
+                    writer.write("Message: " + message + "\n");
+                    writer.write("Signature: " + signature + "\n");
+                    writer.write("Public Key: (" + n + ", " + d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE))) + ")\n");
+                    writer.write("Private Key: (" + d + ")\n");
+                    writer.write("Signed: " + signature + "\n");
+                }
+
+                // Display public key
+                publicKeyTextArea.setText("Public Key: (" + n + ", " + d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE))) + ")");
+
+                JOptionPane.showMessageDialog(null, "File signed successfully.");
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+
+        // Verify button action
+        verifyButton.addActionListener(e -> {
+            try {
+                BigInteger p = new BigInteger(pField.getText());
+                BigInteger q = new BigInteger(qField.getText());
+
+                // Read public key from text area
+                String publicKeyText = publicKeyTextArea.getText();
+                String[] publicKeyParts = publicKeyText.substring(publicKeyText.indexOf("(") + 1, publicKeyText.indexOf(")")).split(",");
+                BigInteger n = new BigInteger(publicKeyParts[0].trim());
+                BigInteger d = new BigInteger(publicKeyParts[1].trim());
+
+                // Choose input file using JFileChooser
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    BigInteger signature = new BigInteger(JOptionPane.showInputDialog("Enter the signature:"));
+
+                    if (verifySignature(selectedFile, signature, p, q, d)) {
+                        JOptionPane.showMessageDialog(null, "Signature is valid.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Signature is not valid.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No file selected.");
+                }
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+    }
+
+    private static boolean verifySignature(File file, BigInteger signature, BigInteger p, BigInteger q, BigInteger d) throws IOException {
+        // Read the content of the file
+        FileInputStream inputStream = new FileInputStream(file);
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteStream.write(buffer, 0, bytesRead);
+        }
+        byte[] messageBytes = byteStream.toByteArray();
+        inputStream.close();
+
+        // Convert the message to BigInteger
+        BigInteger message = new BigInteger(1, messageBytes);
+
+        // Compute n
+        BigInteger n = p.multiply(q);
+
+        // Compute m^e mod n using public key
+        BigInteger computedMessage = signature.modPow(d, n);
+
+        // Compare computed message with the original message
+        return computedMessage.equals(message);
+    }
+}

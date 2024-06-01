@@ -1,0 +1,118 @@
+package Main;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigInteger;
+
+public class DigitalSignature extends JFrame {
+    private JPanel leftPanel;
+    private JPanel rightPanel;
+    private JTextArea signTextArea;
+    private JTextArea publicKeyTextArea;
+
+    public DigitalSignature() {
+        setTitle("Digital Signature");
+        setSize(800, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Initialize panels
+        leftPanel = new JPanel();
+        rightPanel = new JPanel();
+
+        // Set layouts
+        leftPanel.setLayout(new GridLayout(0, 1));
+        rightPanel.setLayout(new GridLayout(0, 1));
+
+        // Initialize text areas
+        signTextArea = new JTextArea(20, 30);
+        publicKeyTextArea = new JTextArea(20, 30);
+
+        // Add scroll panes
+        JScrollPane signScrollPane = new JScrollPane(signTextArea);
+        JScrollPane publicKeyScrollPane = new JScrollPane(publicKeyTextArea);
+
+        // Add scroll panes to panels
+        leftPanel.add(signScrollPane);
+        rightPanel.add(publicKeyScrollPane);
+
+        // Initialize buttons
+        JButton signButton = new JButton("Choose File to Sign");
+        JButton encryptButton = new JButton("Choose File to Encrypt");
+
+        // Add action listeners to buttons
+        signButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int result = fileChooser.showOpenDialog(null);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    // Perform signing operations
+                    // For simplicity, I'll just show the file content in the text area
+                    try {
+                        BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            content.append(line).append("\n");
+                        }
+                        reader.close();
+                        signTextArea.setText(content.toString());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        encryptButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                int result = fileChooser.showOpenDialog(null);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    // Perform encryption operations
+                    // For simplicity, I'll just show the file content in the text area
+                    try {
+                        BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            content.append(line).append("\n");
+                        }
+                        reader.close();
+                        publicKeyTextArea.setText(content.toString());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        // Add buttons to panels
+        leftPanel.add(signButton);
+        rightPanel.add(encryptButton);
+
+        // Add panels to frame
+        getContentPane().setLayout(new GridLayout(1, 2));
+        getContentPane().add(leftPanel);
+        getContentPane().add(rightPanel);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                DigitalSignatureGUI gui = new DigitalSignatureGUI();
+                gui.setVisible(true);
+            }
+        });
+    }
+}

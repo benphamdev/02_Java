@@ -1,0 +1,66 @@
+package Main;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class DigitalSignature extends JFrame {
+    private JPanel panel;
+    private JTextField textFieldP;
+    private JTextField textFieldQ;
+    private JTextField textFieldD;
+    private JButton submitButton;
+
+    public DigitalSignature() {
+        setTitle("Input Table");
+        setSize(400, 200);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Initialize panel
+        panel = new JPanel(new GridLayout(4, 2));
+
+        // Initialize text fields
+        textFieldP = new JTextField();
+        textFieldQ = new JTextField();
+        textFieldD = new JTextField();
+
+        // Add labels and text fields to panel
+        panel.add(new JLabel("Value for p:"));
+        panel.add(textFieldP);
+        panel.add(new JLabel("Value for q:"));
+        panel.add(textFieldQ);
+        panel.add(new JLabel("Value for d:"));
+        panel.add(textFieldD);
+
+        // Initialize submit button
+        submitButton = new JButton("Submit");
+
+        // Add action listener to submit button
+        submitButton.addActionListener(e -> {
+            // Retrieve values from text fields
+            String pValue = textFieldP.getText();
+            String qValue = textFieldQ.getText();
+            String dValue = textFieldD.getText();
+
+            // Do something with the retrieved values
+            // For example, you can parse them to integers and perform further operations
+
+            // Print the retrieved values (for demonstration)
+            System.out.println("Value for p: " + pValue);
+            System.out.println("Value for q: " + qValue);
+            System.out.println("Value for d: " + dValue);
+        });
+
+        // Add submit button to panel
+        panel.add(submitButton);
+
+        // Add panel to frame
+        getContentPane().add(panel, BorderLayout.CENTER);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+        	DigitalSignature example = new DigitalSignature();
+            example.setVisible(true);
+        });
+    }
+}

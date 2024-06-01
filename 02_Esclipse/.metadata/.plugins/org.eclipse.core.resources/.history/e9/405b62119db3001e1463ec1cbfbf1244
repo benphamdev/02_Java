@@ -1,0 +1,98 @@
+package Main;
+
+import java.util.Scanner;
+
+public class HillCipher {
+
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("Nhập ma trận khóa (2x2):");
+		int[][] keyMatrix = new int[2][2];
+
+		// Nhập ma trận khóa từ người dùng
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				System.out.print("Nhập giá trị cho keyMatrix[" + i + "][" + j + "]: ");
+				keyMatrix[i][j] = scanner.nextInt();
+			}
+		}
+
+		// Tìm ma trận nghịch đảo của ma trận khóa
+		int[][] inverseKeyMatrix = inverseMatrix(keyMatrix);
+
+		if (inverseKeyMatrix == null) {
+			System.out.println("Không thể tìm ma trận nghịch đảo. Hãy chắc chắn rằng ma trận khóa là khả nghịch.");
+			return;
+		}
+
+		System.out.println("Nhập đoạn mã đã được mã hóa:");
+		scanner.nextLine(); // Đọc dòng mới để xử lý việc nhập chuỗi
+		String ciphertext = scanner.nextLine().toUpperCase(); // Chuyển thành chữ hoa để thuận tiện
+
+		// Chia chuỗi thành các khối 2 ký tự
+		String[] blocks = new String[ciphertext.length() / 2];
+		for (int i = 0; i < ciphertext.length(); i += 2) {
+			blocks[i / 2] = ciphertext.substring(i, i + 2);
+		}
+
+		// Giải mã từng khối
+		System.out.print("Chuỗi đã giải mã: ");
+		for (String block : blocks) {
+			int[] input = new int[2];
+			for (int i = 0; i < 2; i++) {
+				input[i] = block.charAt(i) - 'A';
+			}
+
+			int[] result = multiply(inverseKeyMatrix, input);
+
+			for (int value : result) {
+				System.out.print((char) (value + 'A'));
+			}
+		}
+
+		scanner.close();
+	}
+
+	// Hàm tính ma trận nghịch đảo
+	private static int[][] inverseMatrix(int[][] matrix) {
+		int determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+
+		if (determinant == 0) {
+			return null; // Ma trận không khả nghịch
+		}
+
+		int inverseDeterminant = modInverse(determinant, 26);
+
+		int[][] inverseMatrix = new int[2][2];
+		inverseMatrix[0][0] = matrix[1][1] * inverseDeterminant % 26;
+		inverseMatrix[0][1] = (26 + (-matrix[0][1] * inverseDeterminant) % 26) % 26;
+		inverseMatrix[1][0] = (26 + (-matrix[1][0] * inverseDeterminant) % 26) % 26;
+		inverseMatrix[1][1] = matrix[0][0] * inverseDeterminant % 26;
+
+		return inverseMatrix;
+	}
+
+	// Hàm tính nghịch đảo modulo 26
+	private static int modInverse(int a, int m) {
+		a = a % m;
+		for (int x = 1; x < m; x++) {
+			if ((a * x) % m == 1) {
+				return x;
+			}
+		}
+		return 1;
+	}
+
+	// Hàm nhân ma trận
+	private static int[] multiply(int[][] matrix, int[] vector) {
+		int[] result = new int[2];
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				result[i] += matrix[i][j] * vector[j];
+			}
+			result[i] %= 26; // Modulo 26 để giữ kết quả trong phạm vi 26 ký tự tiếng Anh
+		}
+		return result;
+	}
+}

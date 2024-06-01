@@ -1,0 +1,58 @@
+package Main;
+
+import java.math.BigInteger;
+import java.util.Scanner;
+
+public class AffineCipher {
+
+	private static int mod = 26;
+
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+
+		System.out.println("Enter key1: ");
+		int key1 = sc.nextInt();
+
+		System.out.println("Enter key2: ");
+		int key2 = sc.nextInt();
+
+		sc.nextLine();
+
+		System.out.println("Enter the source text: ");
+		String source = sc.nextLine().toUpperCase();
+
+		String cipher = encrypt(source, firstKey, secondKey);
+		String deciphered = decrypt(cipher, firstKey, secondKey);
+
+		System.out.println("Source:    " + source);
+		System.out.println("Encrypted: " + cipher);
+		System.out.println("Decrypted: " + deciphered);
+	}
+
+	static String encrypt(String input, int firstKey, int secondKey) {
+		StringBuilder builder = new StringBuilder();
+		for (int in = 0; in < input.length(); in++) {
+			char character = input.charAt(in);
+			if (Character.isLetter(character)) {
+				character = (char) ((firstKey * (character - 'A') + secondKey) % module + 'A');
+			}
+			builder.append(character);
+		}
+		return builder.toString();
+	}
+
+	static String decrypt(String input, int firstKey, int secondKey) {
+		StringBuilder builder = new StringBuilder();
+		BigInteger inverse = BigInteger.valueOf(firstKey).modInverse(BigInteger.valueOf(module));
+		for (int in = 0; in < input.length(); in++) {
+			char character = input.charAt(in);
+			if (Character.isLetter(character)) {
+				int decoded = inverse.intValue() * (character - 'A' - secondKey + module);
+				decoded = (decoded % module + module) % module; // Ensure it's positive and less than module
+				character = (char) (decoded + 'A');
+			}
+			builder.append(character);
+		}
+		return builder.toString();
+	}
+}

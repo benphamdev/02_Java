@@ -1,0 +1,5 @@
+package deSo1;
+
+public enum LoaiGiay {
+	GIAYFORD, GIAYBRISTOL, GIAYIVORY, GIAYCOUCHE, GIAYDPLEX;
+}
