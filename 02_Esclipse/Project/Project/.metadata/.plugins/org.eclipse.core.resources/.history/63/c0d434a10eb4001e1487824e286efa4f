@@ -1,0 +1,43 @@
+package mypack;
+
+import java.util.Scanner;
+
+public class Program {
+	public static String encryption(String gm) {
+		String mh = "";
+		int a = 3;
+		int b = 6;
+		for (int i = 0; i < gm.length(); i++) {
+			mh = mh + (char) ((((a * gm.charAt(i)) + b) % 26) + 65);
+		}
+		return mh;
+	}
+
+	public static String decryption(String mh) {
+		String gm = "";
+		int a = 3;
+		int b = 6;
+		int a_inv = 0;
+		int flag = 0;
+		for (int i = 0; i < 26; i++) {
+			flag = (a * i) % 26;
+			if (flag == 1) {
+				a_inv = i;
+			}
+		}
+		for (int i = 0; i < mh.length(); i++) {
+			gm = gm + (char) (((a_inv * ((mh.charAt(i) - b)) % 26)) + 65);
+		}
+		return gm;
+	}
+
+	public static void main(String[] args) {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Nhập bản rõ: ");
+		String banRo = sc.next();
+		System.out.println("AFFINE ALGORITHM");
+		System.out.println("Giải mã : " + encryption(banRo));
+		System.out.println("Mã hóa ngược: " + decryption(encryption(banRo)));
+		sc.close();
+	}
+}

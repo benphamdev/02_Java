@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;bai_5.ptbac2&apos; to &apos;quadratic_equations&apos;&#x0D;&#x0A;- Original project: &apos;bai_5&apos;&#x0D;&#x0A;- Original element: &apos;bai_5.ptbac2&apos;&#x0D;&#x0A;- Renamed element: &apos;bai_5.quadratic_equations&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;ptbac2&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;bai_5{ptbac2.java[ptbac2" matchStrategy="1" name="quadratic_equations" qualified="false" references="true" similarDeclarations="false" stamp="1693140389248" textual="false" version="1.0"/>
+</session>

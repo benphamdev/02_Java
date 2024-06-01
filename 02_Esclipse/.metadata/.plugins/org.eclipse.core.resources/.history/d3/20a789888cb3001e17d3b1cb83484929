@@ -1,0 +1,74 @@
+package Main;
+
+import java.util.Scanner;
+
+public class HillCipher {
+
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("Nhập ma trận khóa (2x2):");
+		int[][] keyMatrix = new int[2][2];
+
+		// Nhập ma trận khóa từ người dùng
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				System.out.print("Nhập giá trị cho keyMatrix[" + i + "][" + j + "]: ");
+				keyMatrix[i][j] = scanner.nextInt();
+			}
+		}
+
+		System.out.println("Nhập chuỗi cần mã hóa:");
+		scanner.nextLine(); // Đọc dòng mới để xử lý việc nhập chuỗi
+		String plaintext = scanner.nextLine().toUpperCase(); // Chuyển thành chữ hoa để thuận tiện
+
+		// Kiểm tra độ dài của chuỗi để chia thành các khối có kích thước 2
+		int padding = 0;
+		if (plaintext.length() % 2 != 0) {
+			plaintext += "X"; // Thêm "X" để đảm bảo độ dài là số chẵn
+			padding = 1;
+		}
+
+		// Chia chuỗi thành các khối 2 ký tự
+		String[] blocks = new String[plaintext.length() / 2];
+		for (int i = 0; i < plaintext.length(); i += 2) {
+			blocks[i / 2] = plaintext.substring(i, i + 2);
+		}
+
+		// Mã hóa từng khối
+		System.out.print("Chuỗi đã mã hóa: ");
+		for (String block : blocks) {
+			int[] input = new int[2];
+			for (int i = 0; i < 2; i++) {
+				input[i] = block.charAt(i) - 'A';
+			}
+
+			int[] result = multiply(keyMatrix, input);
+
+			for (int value : result) {
+				System.out.print((char) (value + 'A'));
+			}
+		}
+
+		// In padding nếu có
+		for (int i = 0; i < padding; i++) {
+			System.out.print("X");
+		}
+
+		scanner.close();
+	}
+
+	// Phép nhân ma trận
+	private static int[] multiply(int[][] matrix, int[] vector) {
+		int[] result = new int[2];
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 2; j++) {
+				result[i] += matrix[i][j] * vector[j];
+			}
+			result[i] %= 26; // Modulo 26 để giữ kết quả trong phạm vi 26 ký tự tiếng Anh
+		}
+		return result;
+	}
+}
+
+}

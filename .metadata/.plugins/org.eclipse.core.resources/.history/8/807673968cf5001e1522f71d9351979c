@@ -1,0 +1,100 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Create the frame
+        JFrame frame = new JFrame("Digital Signature");
+        frame.setSize(800, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create panel
+        JPanel panel = new JPanel();
+        frame.add(panel);
+
+        // Add components
+        JTextField verifyPField = new JTextField(5);
+        JTextField verifyQField = new JTextField(5);
+        JButton verifyButton = new JButton("Verify Signature");
+
+        panel.add(new JLabel("Verify Key1:"));
+        panel.add(verifyPField);
+        panel.add(new JLabel("Verify Key2:"));
+        panel.add(verifyQField);
+        panel.add(verifyButton);
+
+        // Verify button action
+        verifyButton.addActionListener(e -> {
+            try {
+                BigInteger verifyP = new BigInteger(verifyPField.getText());
+                BigInteger verifyQ = new BigInteger(verifyQField.getText());
+
+                // Choose input file using JFileChooser
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+
+                    // Read the content of the file
+                    FileInputStream inputStream = new FileInputStream(selectedFile);
+                    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        byteStream.write(buffer, 0, bytesRead);
+                    }
+                    byte[] fileContent = byteStream.toByteArray();
+                    inputStream.close();
+
+                    // Extract the signature from the file content
+                    String fileContentString = new String(fileContent);
+                    String[] lines = fileContentString.split("\n");
+                    String signatureLine = null;
+                    for (String line : lines) {
+                        if (line.startsWith("Signature:")) {
+                            signatureLine = line.trim();
+                            break;
+                        }
+                    }
+
+                    if (signatureLine != null) {
+                        String[] parts = signatureLine.split(":");
+                        if (parts.length >= 2) {
+                            String signatureString = parts[1].trim();
+                            BigInteger signature = new BigInteger(signatureString.trim());
+
+                            // Compute n
+                            BigInteger n = verifyP.multiply(verifyQ);
+
+                            // Compute m^e mod n using public key
+                            BigInteger computedMessage = signature.modPow(BigInteger.valueOf(65537), n); // Assuming e is 65537
+
+                            // Compare computed message with the original message
+                            if (new BigInteger(1, fileContent).equals(computedMessage)) {
+                                JOptionPane.showMessageDialog(null, "Signature is valid.");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Signature is not valid.");
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Invalid signature format in file.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Signature not found in file.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No file selected.");
+                }
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+
+        frame.setVisible(true);
+    }
+}

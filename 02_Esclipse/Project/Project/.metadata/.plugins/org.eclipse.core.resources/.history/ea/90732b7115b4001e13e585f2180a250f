@@ -1,0 +1,71 @@
+package mypack;
+
+//import java.util.Scanner;
+//
+//public class Program {
+//	public static String encrypt(String text, int shift) {
+//		StringBuilder result = new StringBuilder();
+//		for (int i = 0; i < text.length(); i++) {
+//			char ch = text.charAt(i);
+//			if (Character.isUpperCase(ch)) {
+//				result.append((char) (((ch - 'A' + shift) % 26) + 'A'));
+//			} else {
+//				result.append((char) (((ch - 'a' + shift) % 26) + 'a'));
+//			}
+//		}
+//		return result.toString();
+//	}
+//
+//	public static String decrypt(String cipher, int shift) {
+//		return encrypt(cipher, 26 - shift);
+//	}
+//
+//	public static void main(String[] args) {
+//		Scanner sc = new Scanner(System.in);
+//		String text;
+//		System.out.println("Nhập bản rõ : ");
+//		text = sc.nextLine();
+//		int shift;
+//		System.out.println("Nhập Shift");
+//		shift = sc.nextInt();
+//		String cipher = encrypt(text, shift);
+//		System.out.println("Bản mã: " + cipher);
+//		System.out.println("Bản rõ : " + decrypt(cipher, shift));
+//	}
+//}
+
+public class Program {
+    // Hàm mã hóa Dịch vòng
+    public static String maHoa(String banRo, int khoaNhap) {
+        StringBuilder chuoiDaMaHoa = new StringBuilder();
+        for (int i = 0; i < banRo.length(); i++) {
+            char kyTu = banRo.charAt(i);
+            if (Character.isLetter(kyTu)) {
+                char kyTuDaMaHoa = (char) (((kyTu - 'A' + khoaNhap) % 26) + 'A');
+                chuoiDaMaHoa.append(kyTuDaMaHoa);
+            } else {
+                chuoiDaMaHoa.append(kyTu);
+            }
+        }
+        return chuoiDaMaHoa.toString();
+    }
+
+    // Hàm giải mã Dịch vòng
+    public static String giaiMa(String chuoiDaMaHoa, int khoaNhap) {
+        return maHoa(chuoiDaMaHoa, 26 - khoaNhap);
+    }
+
+    public static void main(String[] args) {
+        String banRo = "HOCTAPLAODONGTOT";
+        int khoaNhap = 5;
+
+        // Mã hóa Dịch vòng
+        String chuoiDaMaHoa = maHoa(banRo, khoaNhap);
+        System.out.println("Chuỗi đã mã hóa: " + chuoiDaMaHoa);
+
+        // Giải mã Dịch vòng
+        String chuoiGiaiMa = giaiMa(chuoiDaMaHoa, khoaNhap);
+        System.out.println("Chuỗi đã giải mã: " + chuoiGiaiMa);
+    }
+}
+

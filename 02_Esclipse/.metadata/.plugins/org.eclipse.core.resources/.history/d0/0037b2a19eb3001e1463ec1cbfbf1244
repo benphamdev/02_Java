@@ -1,0 +1,51 @@
+package Main;
+
+import java.util.Scanner;
+
+public class HillCipher {
+
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+		int[][] maTranKhoa;
+		int n;
+		System.out.print("NHAP KICH THUOC MA TRAN KHOA (VI DU, # CHO MA TRAN 3x3 ): ");
+		n = scanner.nextInt();
+		maTranKhoa = new int[n][n];
+		System.out.print("NHAP CAC PHAN TU THEO TUNG HANG ");
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				maTranKhoa[i][j] = scanner.nextInt();
+			}
+		}
+		scanner.nextLine();
+		System.out.print("NHAP THONG DIEP: ");
+		String thongDiep = scanner.nextLine();
+		MaHoa(maTranKhoa, n, thongDiep);
+	}
+
+	public static void MaHoa(int[][] maTranKhoa, int n, String thongDiep) {
+		int kichThuocKhoi = n;
+		String thongDiepBoSung = thongDiep;
+		if (thongDiep.length() % kichThuocKhoi != 0) {
+			thongDiepBoSung += new String(new char[kichThuocKhoi - (thongDiep.length() % kichThuocKhoi)]).replace('\0',
+					'X');
+		}
+		for (int i = 0; i < thongDiepBoSung.length(); i += kichThuocKhoi) {
+			int[] khoi = new int[kichThuocKhoi];
+			for (int j = 0; j < kichThuocKhoi; j++) {
+				khoi[j] = thongDiepBoSung.charAt(i + j) - 'A';
+			}
+			int[] maTranMaHoa = new int[kichThuocKhoi];
+			for (int j = 0; j < kichThuocKhoi; j++) {
+				maTranMaHoa[j] = 0;
+				for (int k = 0; k < kichThuocKhoi; k++) {
+					maTranMaHoa[j] += maTranKhoa[j][k] * khoi[k];
+				}
+				maTranMaHoa[j] = (maTranMaHoa[j] % 26 + 26) % 26;
+			}
+			for (int j = 0; j < kichThuocKhoi; j++) {
+				System.out.print((char) (maTranMaHoa[j] + 'A'));
+			}
+		}
+	}
+}

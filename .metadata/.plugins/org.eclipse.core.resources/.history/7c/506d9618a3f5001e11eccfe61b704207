@@ -1,0 +1,172 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    private static JTextField pField, qField, dField;
+    private static JTextArea messageArea;
+    private static JButton chooseInputButton, signButton, verifyButton;
+    private static File inputFile;
+    private static BigInteger publicKeyN, publicKeyE;
+
+    // Method to compute signature
+    private static BigInteger computeSignature(BigInteger message, BigInteger p, BigInteger q, BigInteger d) {
+        BigInteger n = p.multiply(q);
+        return message.modPow(d, n);
+    }
+
+    // Method to write results to file
+    private static void writeResultsToFile(String outputFile, BigInteger message, BigInteger signature, BigInteger p, BigInteger q, BigInteger d) throws IOException {
+        BigInteger n = p.multiply(q);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+        writer.write("Message: " + message + "\n");
+        writer.write("Signature: " + signature + "\n");
+        writer.write("Public Key: (" + n + ", " + d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE))) + ")\n");
+        writer.write("Private Key: (" + d + ")\n");
+        writer.write("Signed: " + signature + "\n");
+        writer.close();
+        System.out.println("Signature computation and output completed successfully.");
+    }
+
+    // Method to handle file selection
+    private static void chooseInputFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            inputFile = fileChooser.getSelectedFile();
+        } else {
+            System.out.println("No file selected.");
+        }
+    }
+
+    // Method to handle signing process
+    private static void sign() {
+        try {
+            // Get values of p, q, and d from text fields
+            BigInteger p = new BigInteger(pField.getText());
+            BigInteger q = new BigInteger(qField.getText());
+            BigInteger d = new BigInteger(dField.getText());
+
+            // Read message from text area
+            String messageText = messageArea.getText();
+            BigInteger message = new BigInteger(messageText);
+
+            // Compute signature
+            BigInteger signature = computeSignature(message, p, q, d);
+
+            // Write results to file
+            writeResultsToFile("src//Main//output.txt", message, signature, p, q, d);
+
+            // Show results
+            JOptionPane.showMessageDialog(null, "Signature: " + signature, "Digital Signature", JOptionPane.INFORMATION_MESSAGE);
+            publicKeyN = p.multiply(q);
+            publicKeyE = d.modInverse(p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE)));
+            JOptionPane.showMessageDialog(null, "Public Key: (" + publicKeyN + ", " + publicKeyE + ")", "Digital Signature", JOptionPane.INFORMATION_MESSAGE);
+
+            // Print signature and public key to console
+            System.out.println("Signature: " + signature);
+            System.out.println("Public Key: (" + publicKeyN + ", " + publicKeyE);
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading/writing files.");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid integers.");
+        }
+    }
+
+    // Method to handle verification process
+    private static void verify() {
+        try {
+            // Read message for decryption from the selected file
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            StringBuilder messageBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                messageBuilder.append(line);
+            }
+            reader.close();
+
+            // Convert message for decryption to BigInteger
+            BigInteger message = new BigInteger(messageBuilder.toString());
+
+            // Prompt user to enter n and e1
+            BigInteger nForDecryption = new BigInteger(JOptionPane.showInputDialog("Enter value for key1 for decryption: \n"));
+            BigInteger e1 = new BigInteger(JOptionPane.showInputDialog("Enter value for key2:\n"));
+
+            // Perform decryption
+            BigInteger decryptedMessage = message.modPow(e1, nForDecryption);
+
+            // Compare decrypted message with original message
+            boolean decryptionMatches = decryptedMessage.equals(message);
+
+            // Show decryption result
+            if (decryptionMatches) {
+                JOptionPane.showMessageDialog(null, "Decryption Matches Original Message: true", "Decryption Result", JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("Decryption Matches Original Message: true");
+            } else {
+                JOptionPane.showMessageDialog(null, "Decryption Matches Original Message: false", "Decryption Result", JOptionPane.ERROR_MESSAGE);
+                System.out.println("Decryption Matches Original Message: false");
+            }
+            
+            // Write decryption result to the output file
+            BufferedWriter decryptionWriter = new BufferedWriter(new FileWriter("src//Main//output.txt", true)); // Append mode
+            decryptionWriter.write("Decrypted Message: " + decryptedMessage + "\n");
+            decryptionWriter.write("Decryption Matches Original Message: " + decryptionMatches + "\n");
+            decryptionWriter.close();
+
+            System.out.println("Decryption completed successfully.");
+
+        } catch (IOException e) {
+            System.out.println("An error occurred while reading/writing files.");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter valid integers.");
+        }
+    }
+
+    public static void main(String[] args) {
+        // Create text fields for p, q, and d
+        pField = new JTextField(10);
+        qField = new JTextField(10);
+        dField = new JTextField(10);
+
+        // Create text area for message
+        messageArea = new JTextArea(5, 20);
+
+        // Create buttons
+        chooseInputButton = new JButton("Choose Input File");
+        signButton = new JButton("Sign");
+        verifyButton = new JButton("Verify");
+
+        // Set action listeners for buttons
+        chooseInputButton.addActionListener(e -> chooseInputFile());
+        signButton.addActionListener(e -> sign());
+        verifyButton.addActionListener(e -> verify());
+
+        // Create panel to hold components
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("p: "));
+        panel.add(pField);
+        panel.add(new JLabel("q: "));
+        panel.add(qField);
+        panel.add(new JLabel("d: "));
+        panel.add(dField);
+        panel.add(new JLabel("Message: "));
+        panel.add(new JScrollPane(messageArea));
+        panel.add(chooseInputButton);
+        panel.add(signButton);
+        panel.add(verifyButton);
+
+        // Show input dialog
+        int result = JOptionPane.showConfirmDialog(null, panel, "Digital Signature", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            // Continue with the process
+        } else {
+            System.out.println("User canceled.");
+        }
+    }
+}

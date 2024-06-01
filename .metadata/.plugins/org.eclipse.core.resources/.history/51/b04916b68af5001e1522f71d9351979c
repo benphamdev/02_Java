@@ -1,0 +1,99 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Create the frame
+        JFrame frame = new JFrame("Digital Signature");
+        frame.setSize(800, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Create panel
+        JPanel panel = new JPanel();
+        frame.add(panel);
+
+        // Add components
+        JTextField verifyPField = new JTextField(5);
+        JTextField verifyQField = new JTextField(5);
+        JButton verifyButton = new JButton("Verify Signature");
+
+        JTextArea messageArea = new JTextArea(5, 20);
+        messageArea.setEditable(false);
+        messageArea.setLineWrap(true);
+
+        panel.add(new JLabel("Verify Key1:"));
+        panel.add(verifyPField);
+        panel.add(new JLabel("Verify Key2:"));
+        panel.add(verifyQField);
+        panel.add(verifyButton);
+        panel.add(new JScrollPane(messageArea));
+
+        // Verify button action
+        verifyButton.addActionListener(e -> {
+            try {
+                BigInteger verifyP = new BigInteger(verifyPField.getText());
+                BigInteger verifyQ = new BigInteger(verifyQField.getText());
+
+                // Choose input file using JFileChooser
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+                int result = fileChooser.showOpenDialog(null);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+
+                    // Read signature from file
+                    BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
+                    String messageLine = reader.readLine(); // Read Message line
+                    reader.readLine(); // Skip Signature line
+                    reader.readLine(); // Skip Public Key line
+                    reader.close();
+
+                    String messageString = messageLine.split(":")[1].trim();
+                    byte[] messageBytes = messageString.getBytes();
+
+                    if (verifySignature(selectedFile, messageBytes, verifyP, verifyQ)) {
+                        messageArea.setText(new String(messageBytes));
+                        JOptionPane.showMessageDialog(null, "Signature is valid.");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Signature is not valid.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "No file selected.");
+                }
+            } catch (IOException | NumberFormatException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(null, "An error occurred. Please check your input and try again.");
+            }
+        });
+
+        frame.setVisible(true);
+    }
+
+    private static boolean verifySignature(File file, byte[] messageBytes, BigInteger p, BigInteger q) throws IOException {
+        // Compute n
+        BigInteger n = p.multiply(q);
+
+        // Choose input file using JFileChooser
+        FileInputStream inputStream = new FileInputStream(file);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        reader.readLine(); // Skip Message line
+        String signatureLine = reader.readLine(); // Read Signature line
+        reader.close();
+
+        String signatureString = signatureLine.split(":")[1].trim();
+        BigInteger signature = new BigInteger(signatureString);
+
+        // Convert the message to BigInteger
+        BigInteger message = new BigInteger(1, messageBytes);
+
+        // Compute m^e mod n using public key
+        BigInteger computedMessage = signature.modPow(BigInteger.valueOf(65537), n); // Assuming e is 65537
+
+        // Compare computed message with the original message
+        return computedMessage.equals(message);
+    }
+}

@@ -1,0 +1,63 @@
+package Main;
+
+import java.util.Scanner;
+
+public class HillCipher {
+	// method to accept key matrix
+	private static int[][] getKeyMatrix() {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter key matrix:");
+		String key = sc.nextLine();
+		double sq = Math.sqrt(key.length());
+		int len = key.length();
+		int k = 0;
+		int[][] keyMatrix = new int[(int) sq][(int) sq];
+		for (int i = 0; i < sq; i++) {
+			for (int j = 0; j < sq; j++) {
+				keyMatrix[i][j] = ((int) key.charAt(k)) % 65;
+				k++;
+			}
+		}
+		return keyMatrix;
+	}
+
+	// method to accept plain text
+	private static int[][] getPlainText() {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter plain text:");
+		String plainText = sc.nextLine();
+		double sq = Math.sqrt(plainText.length());
+		int len = plainText.length();
+		int k = 0;
+		int[][] plainTextMatrix = new int[(int) sq][1];
+		for (int i = 0; i < sq; i++) {
+			plainTextMatrix[i][0] = ((int) plainText.charAt(k)) % 65;
+			k++;
+		}
+		return plainTextMatrix;
+	}
+
+	// method to perform encryption
+	private static void encrypt(int[][] keyMatrix, int[][] plainTextMatrix) {
+		int[][] cipherTextMatrix = new int[keyMatrix.length][1];
+		for (int i = 0; i < keyMatrix.length; i++) {
+			for (int j = 0; j < 1; j++) {
+				cipherTextMatrix[i][j] = 0;
+				for (int k = 0; k < keyMatrix.length; k++) {
+					cipherTextMatrix[i][j] += keyMatrix[i][k] * plainTextMatrix[k][j];
+				}
+				cipherTextMatrix[i][j] = cipherTextMatrix[i][j] % 26;
+			}
+		}
+		System.out.print("Cipher Text: ");
+		for (int i = 0; i < cipherTextMatrix.length; i++) {
+			System.out.print((char) (cipherTextMatrix[i][0] + 65));
+		}
+	}
+
+	public static void main(String[] args) {
+		int[][] keyMatrix = getKeyMatrix();
+		int[][] plainTextMatrix = getPlainText();
+		encrypt(keyMatrix, plainTextMatrix);
+	}
+}

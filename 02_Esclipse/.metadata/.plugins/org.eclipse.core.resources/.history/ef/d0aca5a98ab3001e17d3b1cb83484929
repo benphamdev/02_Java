@@ -1,0 +1,79 @@
+package Main;
+
+import java.util.Arrays;
+
+public class HillCipher {
+
+	public static String encrypt(int[][] matrix, String text) {
+		// Kiểm tra xem ma trận khóa có khả nghịch hay không.
+		if (!isInvertible(matrix)) {
+			throw new IllegalArgumentException("Ma trận khóa không khả nghịch.");
+		}
+
+		// Chuyển văn bản thành ma trận.
+		int[] textArray = text.chars().toArray();
+		int[] cipherArray = new int[textArray.length];
+
+		for (int i = 0; i < textArray.length; i += matrix.length) {
+			int[] block = Arrays.copyOfRange(textArray, i, i + matrix.length);
+			int[] encryptedBlock = multiplyMatrix(matrix, block);
+			System.arraycopy(encryptedBlock, 0, cipherArray, i, encryptedBlock.length);
+		}
+
+		// Chuyển ma trận đã mã hóa thành văn bản.
+		StringBuilder cipherText = new StringBuilder();
+		for (int num : cipherArray) {
+			cipherText.append((char) num);
+		}
+
+		return cipherText.toString();
+	}
+
+	public static String decrypt(int[][] matrix, String cipherText) {
+		// Giải mã bằng cách sử dụng ma trận khóa nghịch đảo.
+		int[][] inverseMatrix = getInverseMatrix(matrix);
+		return encrypt(inverseMatrix, cipherText);
+	}
+
+	// Kiểm tra xem ma trận có khả nghịch hay không.
+	private static boolean isInvertible(int[][] matrix) {
+		// Sử dụng thư viện bên ngoài hoặc tự triển khai thuật toán tìm định thức.
+		// Ví dụ: sử dụng thư viện Apache Commons Math
+		return new LUDecomposition(new Array2DRowRealMatrix(matrix)).getSolver().isNonSingular();
+	}
+
+	// Nhân ma trận với vector.
+	private static int[] multiplyMatrix(int[][] matrix, int[] vector) {
+		int[] result = new int[matrix.length];
+		for (int i = 0; i < matrix.length; i++) {
+			for (int j = 0; j < vector.length; j++) {
+				result[i] += matrix[i][j] * vector[j];
+			}
+		}
+		return result;
+	}
+
+	// Tìm ma trận nghịch đảo.
+	private static int[][] getInverseMatrix(int[][] matrix) {
+		// Sử dụng thư viện bên ngoài hoặc tự triển khai thuật toán tìm ma trận nghịch
+		// đảo.
+		// Ví dụ: sử dụng thư viện Apache Commons Math
+		return new Array2DRowRealMatrix(matrix).inverse().getData();
+	}
+
+	public static void main(String[] args) {
+		// Ma trận khóa.
+		int[][] matrix = { { 2, 3 }, { 3, 1 } };
+
+		// Văn bản cần mã hóa.
+		String text = "hello";
+
+		// Mã hóa văn bản.
+		String cipherText = encrypt(matrix, text);
+		System.out.println("Mã văn bản: " + cipherText);
+
+		// Giải mã văn bản.
+		String plaintext = decrypt(matrix, cipherText);
+		System.out.println("Giải mã văn bản: " + plaintext);
+	}
+}

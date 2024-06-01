@@ -1,0 +1,64 @@
+package Main;
+
+import javax.swing.*;
+import java.io.*;
+import java.math.BigInteger;
+
+public class DigitalSignature {
+    public static void main(String[] args) {
+        // Input file path
+        String inputFile = "src//Main//input.txt";
+        String outputFile = "src//Main//output.txt";
+
+        try {
+            // Choose input file using JFileChooser
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+            int result = fileChooser.showOpenDialog(null);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File signedFile = fileChooser.getSelectedFile();
+
+                // Input p, q, and n using JOptionPane
+                BigInteger p = new BigInteger(JOptionPane.showInputDialog("Enter value for p:"));
+                BigInteger q = new BigInteger(JOptionPane.showInputDialog("Enter value for q:"));
+                BigInteger n = p.multiply(q);
+
+                // Read signed message from file
+                FileInputStream inputStream = new FileInputStream(signedFile);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                // Read message, signature, and public key from file
+                String messageString = reader.readLine().substring(9);
+                String signatureString = reader.readLine().substring(12);
+                String publicKeyString = reader.readLine().substring(13);
+
+                // Convert message and signature to BigIntegers
+                BigInteger message = new BigInteger(messageString.getBytes());
+                BigInteger signature = new BigInteger(signatureString);
+                BigInteger publicKey = new BigInteger(publicKeyString.split(", ")[0]);
+
+                // Verify the signature
+                BigInteger computedSignature = message.modPow(publicKey, n);
+                boolean signatureVerified = computedSignature.equals(signature);
+
+                // Write verification result to file
+                BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+                writer.write("Message: " + messageString + "\n");
+                writer.write("Signature: " + signatureString + "\n");
+                writer.write("Public Key: " + publicKeyString + "\n");
+                writer.write("Signature Verified: " + signatureVerified + "\n");
+                writer.close();
+
+                System.out.println("Signature verification completed successfully.");
+            } else {
+                System.out.println("No file selected.");
+            }
+        } catch (IOException ex) {
+            System.out.println("An error occurred while reading/writing files.");
+            ex.printStackTrace();
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid input. Please enter valid integers.");
+        }
+    }
+}
