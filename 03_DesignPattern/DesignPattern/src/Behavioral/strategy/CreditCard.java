@@ -1,4 +1,4 @@
-package strategy;
+package Behavioral.strategy;
 
 public class CreditCard {
     private int amount;

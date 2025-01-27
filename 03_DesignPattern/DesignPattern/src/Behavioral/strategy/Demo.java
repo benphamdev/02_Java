@@ -1,4 +1,4 @@
-package strategy;
+package Behavioral.strategy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class Demo {
                 }
             }
 
-            // Order object delegates gathering payment data to strategy object,
+            // Order object delegates gathering payment data to Behavioral.strategy object,
             // since only strategies know what data they need to process a
             // payment.
             order.processOrder(strategy);
@@ -62,7 +62,7 @@ public class Demo {
             System.out.print("Pay " + order.getTotalCost() + " units or Continue shopping? P/C: ");
             String proceed = reader.readLine();
             if (proceed.equalsIgnoreCase("P")) {
-                // Finally, strategy handles the payment.
+                // Finally, Behavioral.strategy handles the payment.
                 if (strategy.pay(order.getTotalCost())) {
                     System.out.println("Payment has been successful.");
                 } else {

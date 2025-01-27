@@ -1,4 +1,4 @@
-package strategy;
+package Behavioral.strategy;
 
 public class Order {
     private int totalCost = 0;
@@ -6,7 +6,7 @@ public class Order {
 
     public void processOrder(PayStrategy strategy) {
         strategy.collectPaymentDetails();
-        // Here we could collect and store payment data from the strategy.
+        // Here we could collect and store payment data from the Behavioral.strategy.
     }
 
     public void setTotalCost(int cost) {
